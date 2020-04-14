@@ -457,7 +457,7 @@ class COCO:
             }]
         return ann
 
-    def loadNumpyRes(self, data):
+    def loadNumpyRes(self, data, cls_map=[{"name": "face", "id": 1}]):
         """
         Convert result data from a numpy array [Nx7] where each row contains {imageID,x1,y1,w,h,score,class} and return a result api object
 
@@ -465,7 +465,7 @@ class COCO:
         :return: res (obj)         : result api object
         """
         res = COCO()
-        res.dataset["categories"] = [{"name": "face", "id": 1}]
+        res.dataset["categories"] = cls_map
         print('Converting ndarray to lists...')
         assert(isinstance(data, np.ndarray))
         print(data.shape)
@@ -488,7 +488,7 @@ class COCO:
         res.dataset["annotations"] = ann
         res.dataset["images"] = [{"id": idx} for idx in set(data[:, 0])]
         res.createIndex()
-    return res
+        return res
 
     def annToRLE(self, ann):
         """
