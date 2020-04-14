@@ -457,7 +457,8 @@ class COCO:
             }]
         return ann
 
-    def loadNumpyRes(self, data, cls_map=[{"name": "face", "id": 1}]):
+    @staticmethod
+    def loadNumpyRes(data, cls_map=[{"name": "face", "id": 1}]):
         """
         Convert result data from a numpy array [Nx7] where each row contains {imageID,x1,y1,w,h,score,class} and return a result api object
 
