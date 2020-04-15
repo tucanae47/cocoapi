@@ -474,6 +474,12 @@ class COCO:
         N = data.shape[0]
         ann = []
         idx = 0
+
+        # Adding a fake supercategory!!!!
+        for cat in cls_map:
+            if "supercategory" not in cat.keys():
+                cat["supercategory"] = "Object"
+
         for i in range(N):
             if i % 1000000 == 0:
                 print('{}/{}'.format(i, N))
