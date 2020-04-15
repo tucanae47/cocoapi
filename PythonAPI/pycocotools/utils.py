@@ -3,6 +3,53 @@ import numpy as np
 from .coco import COCO
 from .cocoeval import COCOeval
 
+
+
+def xywh_to_x1y1x2y2(boxes, add_one=False):
+    add = int(add_one)
+    x2 = boxes[:,0]+boxes[:,2]-add
+    y2 = boxes[:,1]+boxes[:,3]-add
+
+    n = x2.size     
+    return np.hstack( [boxes[:,0].reshape(n,-1), 
+                       boxes[:,1].reshape(n,-1), 
+                       x2.reshape(n,-1), 
+                       y2.reshape(n,-1)] )
+
+def x1y1x2y2_to_xywh(boxes, add_one=False):
+    add = int(add_one)
+    w = boxes[:,2]-boxes[:,0]+add
+    h = boxes[:,3]-boxes[:,1]+add
+    n = w.size
+    return np.hstack( [boxes[:,0].reshape(n,-1), 
+                       boxes[:,1].reshape(n,-1), 
+                       w.reshape(n,-1), 
+                       h.reshape(n,-1)] )
+
+def normalize_coords(boxes, w, h):
+    r = boxes.astype(np.float)
+    r[:,0]/=w
+    r[:,2]/=w
+    r[:,1]/=h
+    r[:,3]/=h
+    return r 
+
+def absolute_coords(boxes, w, h):
+    r = boxes.astype(np.float)
+    r[:,0]*=w
+    r[:,2]*=w
+    r[:,1]*=h
+    r[:,3]*=h
+    return r     
+
+def filter_by_common_ids(gt, pd):
+    s = set(gt[:,0])&set(pd[:,0])
+    new_pd = []
+    for l in pd:
+        if l[0] in s:
+            new_pd.append(l.copy())
+    return np.array(new_pd)
+
 class COCOAnalyzer:
     def __init__(self, cocoGt, cocoDt):
         self.cocoGt = copy.copy(cocoGt)
