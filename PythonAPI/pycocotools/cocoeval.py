@@ -639,3 +639,51 @@ class Params:
         self.iouType = iouType
         # useSegm is deprecated
         self.useSegm = None
+
+
+def plot_map_curve_basic(cocoGt, cocoDt, cat_id=1, area="allarea", ax=None):
+    '''
+    Display PR curve for the category with cat_id
+    '''
+    import matplotlib.pyplot as plt 
+    
+    cocoEval = COCOeval(cocoGt=cocoGt,cocoDt=cocoDt,iouType="bbox")
+    cocoEval.params.useCats = cat_id
+    cocoEval.evaluate()
+    cocoEval.accumulate()
+    cocoEval.summarize()
+
+    ps = cocoEval.eval['precision']
+    ps = np.vstack([ps, np.zeros((4, *ps.shape[1:]))])
+    rs = cocoEval.params.recThrs
+
+    cs = ["#96d1f3", "#40b8ea"]
+
+    areaNames = ['allarea', 'small', 'medium', 'large']
+    i = areaNames.index(area)
+    types = ['C75', 'C50']
+
+    class_name = cocoGt.loadCats(cat_id)[0]["name"]
+    
+    area_ps = ps[..., i, 0]
+    aps = [ps_.mean() for ps_ in area_ps]
+    ps_curve = [ ps_.mean(axis=1) if ps_.ndim > 1 else ps_ for ps_ in area_ps]
+    ps_curve.insert(0, np.zeros(ps_curve[0].shape))
+
+    mAp75 = aps[0]
+    mAp50 = mAp75+aps[1]
+
+    if ax is None:
+        ax  = plt.gca()   
+    for k in range(len(types)):
+        ax.plot(rs, ps_curve[k + 1], color=[0, 0, 0], linewidth=0.5)
+        ax.fill_between(rs, ps_curve[k], ps_curve[k + 1], color=cs[k], label=str('[{:.3f}'.format(aps[k]) + ']' + types[k]))
+
+    figure_tile = "class: {} \nmAp(IoU=0.75) = {:.2f} | mAp(IoU=0.5) = {:.2f}".format(class_name, mAp75, mAp50)
+    ax.set_xlabel('recall')
+    ax.set_ylabel('precision')
+    ax.set_xlim(0, 1.)
+    ax.set_ylim(0, 1.)
+    ax.set_title(figure_tile)
+    plt.legend()
+    return {"mAp50": mAp50, "mAp75": mAp75}
