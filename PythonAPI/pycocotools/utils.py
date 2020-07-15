@@ -132,7 +132,7 @@ class COCOAnalyzer:
         ps_['ps_allcategory'] = ps_allcategory
         return k, ps_
 
-    def makeplot(self, catId=None, ax=None, area="all", info="basic"):
+    def makeplot(self, catId=None, ax=None, area="all", info="basic", only_calc=False):
         import matplotlib.pyplot as plt
         rs = self.recThrs
         if catId is None:
@@ -164,6 +164,13 @@ class COCOAnalyzer:
         aps = [ps_.mean() for ps_ in area_ps]
         ps_curve = [ ps_.mean(axis=1) if ps_.ndim > 1 else ps_ for ps_ in area_ps]
         ps_curve.insert(0, np.zeros(ps_curve[0].shape))
+
+        if only_calc:
+            result={}
+            for k in range(len(types)):
+                result[types[k]] = aps[k]
+            return result
+
         if ax is None:
             ax = plt.gca()
         result={}
@@ -171,6 +178,7 @@ class COCOAnalyzer:
             ax.plot(rs, ps_curve[k + 1], color=[0, 0, 0], linewidth=0.5)
             ax.fill_between( rs, ps_curve[k], ps_curve[k + 1], color=cs[k], label=str('[{:.3f}'.format(aps[k]) + ']' + types[k]))
             result[types[k]] = aps[k]
+        
         plt.xlabel('recall')
         plt.ylabel('precision')
         plt.xlim(0, 1.)
